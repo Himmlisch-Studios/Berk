@@ -88,6 +88,10 @@ final class GithubProvider implements GitProviderContract
 
         throw_unless(isset($data['head_commit']), ValidationException::withMessages(['Head commit is not set']));
 
+        if (str($data['ref'])->after('heads/')->toString() !== $app->branch) {
+            return 'Ignoring branch push';
+        }
+
         return $app->deployments()->create([
             'hash' => $data['after'],
             'ref' => $data['ref'],
