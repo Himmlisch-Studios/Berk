@@ -1,7 +1,9 @@
 @extends('layouts.base')
 @section('content-base')
     <div x-data="{ menu_user: false, menu: false }">
-        <div class="relative z-40 md:hidden" role="dialog" aria-modal="true" x-show="menu">
+        <div class="relative z-40 lg:hidden" role="dialog" aria-modal="true" 
+            x-show="menu" 
+            x-cloak>
             <div class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
             <div class="flex fixed inset-0 z-40">
                 <div class="flex relative flex-col flex-1 pt-5 pb-4 w-full max-w-xs bg-white">
@@ -29,7 +31,7 @@
             </div>
         </div>
 
-        <div class="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+        <div class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
             <div class="flex overflow-y-auto flex-col flex-grow pt-5 bg-white border-r border-gray-200">
                 <div class="flex flex-shrink-0 items-center px-4">
                     <img class="w-auto h-10" src="{{ asset(config('app.icon')) }}" alt="{{ config('app.name') }}">
@@ -42,11 +44,11 @@
             </div>
         </div>
 
-        <div class="flex flex-col flex-1 md:pl-64">
+        <div class="flex flex-col flex-1 lg:pl-64">
             <x-navbar>
                 <x-slot name="button">
                     <button type="button"
-                        class="px-4 text-gray-500 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden"
+                        class="px-4 text-gray-500 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
                         x-on:click="menu = !menu">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -57,7 +59,7 @@
                     </button>
                 </x-slot>
                 @isset($front)
-                    <form action="{{ $front->base_url }}" method="GET" class="flex w-full md:ml-0">
+                    <form action="{{ $front->base_url }}" method="GET" class="flex w-full lg:ml-0">
                         <label for="search-field" class="sr-only">Search</label>
                         @php
                             $request = collect(request()->all())->filter(function ($item, $key) {
@@ -87,7 +89,7 @@
             </x-navbar>
             <main class="flex-1">
                 <div class="py-6">
-                    <div class="relative px-4 mx-auto sm:px-6 md:px-8">
+                    <div class="relative px-4 mx-auto sm:px-6 lg:px-8">
                         @include('flash::message')
                         @yield('content')
                     </div>

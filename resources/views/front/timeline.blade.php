@@ -1,4 +1,4 @@
-<div class="px-4 py-5 w-full bg-white shadow sm:rounded-lg sm:px-6">
+<div class="px-4 py-5 w-full sm:px-6">
     <h2 class="text-lg font-medium text-gray-900">@lang('Activity')</h2>
     <div class="flow-root mt-6">
         <ul role="list" class="-mb-8">
@@ -47,10 +47,14 @@
                                         @lang(class_basename($activity->subject_type))
                                         @lang($activity->event)
                                         @lang('by')
-                                        <a href="/admin/users/{{ $activity->causer_id }}"
-                                            class="font-medium text-gray-900">
-                                            {{ $activity->causer?->name ?? class_basename($activity->causer_type) . "($activity->causer_id)" }}
-                                        </a>
+                                        @if (isset($activity->causer->name) || isset($activity->causer_type))
+                                            <a href="/admin/users/{{ $activity->causer_id }}"
+                                                class="font-medium text-gray-900">
+                                                {{ $activity->causer?->name ?? class_basename($activity->causer_type) . "($activity->causer_id)" }}
+                                            </a>
+                                        @else
+                                            @lang('System Processes')
+                                        @endif
                                     </p>
                                 </div>
                                 <div class="text-sm text-right text-gray-500 whitespace-nowrap">

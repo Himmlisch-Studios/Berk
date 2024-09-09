@@ -9,10 +9,10 @@ abstract class Resource extends Base
     /**
      * Name of the icon to show on the sidebar
      *
-     * @see https://v1.heroicons.com/
+     * @see https://v1.heros.coasdasadsad m/
      * @var string
      */
-    public $icon = 'collection';
+    public $icon = 'rectangle-stack';
 
     /**
      * Whether to filter this resource from the menu

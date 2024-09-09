@@ -16,51 +16,73 @@
     </div>
 
     @php $panels = $front->showPanels(); @endphp
-    <div class="flex flex-wrap gap-6 mx-auto mt-8">
-        <div class="flex-1 space-y-6">
-            {!! $panels->shift()->showHtml($object) !!}
-        </div>
 
-        @if (method_exists($object, 'activities'))
-            @php $activities = $object->activities()->latest()->take(6)->get(); @endphp
-            @if ($activities->isNotEmpty())
-                <section class="w-1/3">
-                    @include('front.timeline', ['activities' => $activities])
-                </section>
-            @endif
-        @endif
-    </div>
-
-    <div class="flex gap-6 mx-auto mt-8">
-        <div class="flex-1 space-y-6">
+    <div class="my-10" x-data="{ tab: 'panel-0' }">
+        <nav class="-mb-0.5">
+            <ul class="flex gap-2">
+                @foreach ($panels as $panel)
+                    <li class="p-3 text-sm bg-white rounded-t border-t border-gray-300 border-x">
+                        <button x-on:click="tab = 'panel-' + {{ $loop->index }}" class="transition-colors"
+                            x-bind:class="tab === 'panel-' + {{ $loop->index }} ? 'text-primary-600' : 'text-gray-500'">
+                            @lang($panel->title ? $panel->title : 'Information')
+                        </button>
+                    </li>
+                @endforeach
+                @foreach ($front->showRelations() as $relation)
+                    <li class="p-3 text-sm bg-white rounded-t border-t border-gray-300 border-x">
+                        <button x-on:click="tab = 'rel-' + {{ $loop->index }}" class="transition-colors"
+                            x-bind:class="tab === 'rel-' + {{ $loop->index }} ? 'text-primary-600' : 'text-gray-500'">
+                            @lang($relation->title ? $relation->title : 'Information')
+                        </button>
+                    </li>
+                @endforeach
+            </ul>
+        </nav>
+        <div class="py-2 bg-white rounded-b rounded-tr border shadow">
             @foreach ($panels as $panel)
-                {!! $panel->showHtml($object) !!}
-            @endforeach
+                <div x-show="tab === 'panel-' + {{ $loop->index }}" {{ $loop->first ?: 'x-cloak' }}>
+                    @if ($loop->first)
+                        <div class="flex flex-col gap-6 md:flex-wrap md:flex-row">
+                            <div class="flex-1 space-y-6">
+                                {!! $panels->shift()->showHtml($object) !!}
+                            </div>
 
-            @php
-                $porcentage = 0;
-            @endphp
-
-            @foreach ($front->showRelations() as $key => $relation)
-                <hr class="my-10">
-                @php $porcentage += $relation->width_porcentage(); @endphp
-                <div style="{{ $relation->style_width() }}">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-3xl font-bold">
-                            {{ $relation->title }}
-                        </h4>
-                        <div>
-                            @foreach ($relation->getLinks($object, $key, $front) as $button)
-                                {!! $button->form() !!}
-                            @endforeach
+                            @if (method_exists($object, 'activities'))
+                                @php $activities = $object->activities()->latest()->take(6)->get(); @endphp
+                                @if ($activities->isNotEmpty())
+                                    <section class="md:w-1/3">
+                                        @include('front.timeline', ['activities' => $activities])
+                                    </section>
+                                @endif
+                            @endif
                         </div>
-                    </div>
-                    {!! $relation->getValue($object) !!}
+                    @else
+                        {!! $panel->showHtml($object) !!}
+                    @endif
                 </div>
-                @if ($porcentage >= 100)
-                    @php $porcentage = 0; @endphp
-                    <div style="clear:both;"></div>
-                @endif
+            @endforeach
+            @php $percentage = 0; @endphp
+            @foreach ($front->showRelations() as $key => $relation)
+                <div x-show="tab === 'rel-' + {{ $loop->index }}" class="px-4 py-5`" x-cloak>
+                    @php $percentage += $relation->width_porcentage(); @endphp
+                    <div style="{{ $relation->style_width() }}">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-3xl font-bold">
+                                {{ $relation->title }}
+                            </h4>
+                            <div>
+                                @foreach ($relation->getLinks($object, $key, $front) as $button)
+                                    {!! $button->form() !!}
+                                @endforeach
+                            </div>
+                        </div>
+                        {!! $relation->getValue($object) !!}
+                    </div>
+                    @if ($percentage >= 100)
+                        @php $percentage = 0; @endphp
+                        <div style="clear:both;"></div>
+                    @endif
+                </div>
             @endforeach
         </div>
     </div>
