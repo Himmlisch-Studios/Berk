@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name')) </title>
     <link rel="shortcut icon" href="{{ asset(config('app.icon')) }}" />
+    <meta name='robots' content='noindex,nofollow' />
     @yield('head')
     @wireUiScripts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
