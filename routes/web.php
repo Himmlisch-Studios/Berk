@@ -16,4 +16,4 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 	Route::get('logs', [LogViewerController::class, 'index']);
 });
 
-Route::redirect('/', '/login');
+Route::redirect('/', fn() => response()->noContent());
