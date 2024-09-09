@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('login', Auth\Login::class)->name('login');
-    Route::get('register', Auth\Register::class)->name('register');
-    Route::get('terms', Auth\TermsAndConditions::class)->name('terms');
-    Route::get('password/reset', Auth\ForgotPassword::class)->name('password.request');
-    Route::get('password/reset/{token}', Auth\ResetPassword::class)->name('password.reset');
+    // Route::get('register', Auth\Register::class)->name('register');
+    // Route::get('terms', Auth\TermsAndConditions::class)->name('terms');
+    // Route::get('password/reset', Auth\ForgotPassword::class)->name('password.request');
+    // Route::get('password/reset/{token}', Auth\ResetPassword::class)->name('password.reset');
 });
 
 Route::middleware('auth')->group(function () {
