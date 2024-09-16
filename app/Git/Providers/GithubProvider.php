@@ -49,10 +49,15 @@ final class GithubProvider implements GitProviderContract
         $response = Http::asJson()
             ->accept('application/vnd.github+json')
             ->withHeader('X-GitHub-Api-Version', '2022-11-28')
-            ->withHeader('Authorization', 'Bearer ' . env('GIT_PASS'))
+            ->withHeader('Authorization', 'Bearer ' . env('GIT_PASS_' . str($parts->org)->lower()->snake()->upper(), env('GIT_PASS')))
             ->get("https://api.github.com/repos/{$parts->org}/{$parts->repo}/commits/heads/{$app->branch}");
 
         $latestCommit = $response->json();
+
+        if (isset($latestCommit['status'])) {
+            throw_unless($latestCommit['status'] == 200, 'Github error (' . $latestCommit['status'] . '): ' . $latestCommit['message'] . '. ' . $latestCommit['documentation_url'] ?? '');
+        }
+
         return $app->deployments()->create([
             'hash' => $latestCommit['sha'],
             'ref' => "refs/heads/{$app->branch}",
