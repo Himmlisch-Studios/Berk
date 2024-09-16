@@ -44,14 +44,15 @@ class DeployJob implements ShouldQueue
             }
         };
 
-        if (!File::isDirectory($cwd)) {
+        if (!$this->checkExists($cwd)) {
             $msg = "Directory {$cwd} doesn\'t exists";
             $this->deployError($msg, $stdout, [$msg]);
+            return;
         }
 
         $gitConfig = 'git -c credential.helper=\'!f() { sleep 1; echo "username=${GIT_USER}"; echo "password=${GIT_PASS}"; }; f\'';
 
-        if (File::isEmptyDirectory($cwd)) {
+        if ($this->checkIsEmpty($cwd)) {
             $pull = Process::fromShellCommandline($gitConfig . ' clone "${:REPO}" .', $cwd);
         } else {
             $pull = Process::fromShellCommandline($gitConfig . ' pull "${:REPO}" "${:REF}" -f', $cwd);
@@ -61,12 +62,14 @@ class DeployJob implements ShouldQueue
             $pull->run($stdCollection, $envs);
         } catch (\Throwable $th) {
             $this->deployError($th, $stdout, $stderr);
+            return;
         }
 
         if ($this->job->hasFailed()) return;
 
         if (!$pull->isSuccessful()) {
             $this->deployError('Couldn\'t pull the git repository', $stdout, $stderr);
+            return;
         }
 
         if ($this->job->hasFailed()) return;
@@ -84,12 +87,14 @@ class DeployJob implements ShouldQueue
                 $userScript->run($stdCollection);
             } catch (\Throwable $th) {
                 $this->deployError($th, $stdout, $stderr);
+                return;
             }
 
             if ($this->job->hasFailed()) return;
 
             if (!$userScript->isSuccessful()) {
                 $this->deployError('User script was unsucessful', $stdout, $stderr);
+                return;
             }
         }
 
@@ -97,6 +102,24 @@ class DeployJob implements ShouldQueue
 
         $this->deployment->processed_at = now();
         $this->deployment->save();
+    }
+
+    private function checkIsEmpty($dir): bool
+    {
+        $process = Process::fromShellCommandline('ls | wc -l', $dir);
+        $process->run();
+
+        throw_unless($process->isSuccessful(), $process->getErrorOutput());
+
+        return trim($process->getOutput()) == 0;
+    }
+
+    private function checkExists($dir): bool
+    {
+        $process = Process::fromShellCommandline('test -d "${:DIRPATH}" && echo "1"', null, [...$_ENV, 'DIRPATH' => $dir]);
+        $process->run();
+
+        return trim($process->getOutput()) == true;
     }
 
     private function deployError(\Throwable|string|null $exception, array $stdout, array $stderr)
