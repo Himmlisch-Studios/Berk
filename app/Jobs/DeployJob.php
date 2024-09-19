@@ -25,13 +25,17 @@ class DeployJob implements ShouldQueue
         $app = $deployment->app;
         $cwd = $app->directory;
         $envs = [
+            // System env
             'HOME' => env('HOME'),
+            'PATH' => env('PATH'),
+            // Git env
+            'GIT_USER' => env('GIT_USER'),
+            'GIT_PASS' => env('GIT_PASS'),
             'GIT_TERMINAL_PROMPT' => 0,
+            // App env
             'REPO' => $app->repository,
             'BRANCH' => $app->branch,
             'REF' => $deployment->ref,
-            'GIT_USER' => env('GIT_USER'),
-            'GIT_PASS' => env('GIT_PASS'),
         ];
 
         $stdout = [];
