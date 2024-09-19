@@ -10,6 +10,7 @@ use App\Front\Resources\Resource;
 use App\Git\GitProvider;
 use App\Rules\DomainRule;
 use App\Rules\UserUnixDirectoryRule;
+use Illuminate\Validation\ValidationException;
 use WeblaborMx\Front\Components\Panel;
 
 class App extends Resource
@@ -42,7 +43,7 @@ class App extends Resource
             Inputs\Text::make('Repository')
                 ->placeholder('https://github.com/organization/repository-name')
                 ->hideWhenUpdating()
-                ->rules(['required', 'url']),
+                ->rules(['required']),
             Inputs\Text::make('Branch')
                 ->placeholder('master')
                 ->default('master')
@@ -69,6 +70,19 @@ class App extends Resource
             Inputs\HasMany::make('Deployment'),
             Inputs\HasMany::make('DeploymentError')->setTitle('Errors'),
         ];
+    }
+
+    public function processDataBeforeSaving($data)
+    {
+        $gitProvider = GitProvider::from($data['provider']);
+
+        try {
+            $gitProvider->construct()->extractFromUrl($data['repository']);
+        } catch (\InvalidArgumentException $_) {
+            throw ValidationException::withMessages(['repository' => __('validation.regex', ['attribute' => 'repository'])]);
+        }
+
+        return parent::processDataBeforeSaving($data);
     }
 
     public function actions()
