@@ -6,14 +6,13 @@ use App\Git\GitProvider;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class App extends Model
 {
-    use SearchableTrait, SoftDeletes, LogsActivity, HasUuids;
+    use SearchableTrait, LogsActivity, HasUuids;
 
     protected $guarded = ['webhook_id'];
     protected $searchable = [
