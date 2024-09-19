@@ -74,12 +74,14 @@ class App extends Resource
 
     public function processDataBeforeSaving($data)
     {
-        $gitProvider = GitProvider::from($data['provider']);
+        if ($this->source === 'store' || $this->source === 'create') {
+            $gitProvider = GitProvider::from($data['provider']);
 
-        try {
-            $gitProvider->construct()->extractFromUrl($data['repository']);
-        } catch (\InvalidArgumentException $_) {
-            throw ValidationException::withMessages(['repository' => __('validation.regex', ['attribute' => 'repository'])]);
+            try {
+                $gitProvider->construct()->extractFromUrl($data['repository']);
+            } catch (\InvalidArgumentException $_) {
+                throw ValidationException::withMessages(['repository' => __('validation.regex', ['attribute' => 'repository'])]);
+            }
         }
 
         return parent::processDataBeforeSaving($data);
