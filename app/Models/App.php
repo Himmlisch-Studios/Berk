@@ -10,6 +10,7 @@ use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/** @property GitProvider $provider */
 class App extends Model
 {
     use SearchableTrait, LogsActivity, HasUuids;

@@ -2,12 +2,10 @@
 
 namespace App\Jobs;
 
-use App\Git\GitProviderContract;
 use App\Models\App;
 use App\Models\Deployment;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 
 class DeployJob implements ShouldQueue
@@ -24,13 +22,14 @@ class DeployJob implements ShouldQueue
         /** @var App */
         $app = $deployment->app;
         $cwd = $app->directory;
+
+        $gitPassKey = $this->gitPass();
         $envs = [
             // System env
             'HOME' => env('HOME'),
-            'PATH' => env('PATH'),
             // Git env
             'GIT_USER' => env('GIT_USER'),
-            'GIT_PASS' => env('GIT_PASS'),
+            $gitPassKey => env($gitPassKey),
             'GIT_TERMINAL_PROMPT' => 0,
             // App env
             'REPO' => $app->repository,
@@ -42,9 +41,9 @@ class DeployJob implements ShouldQueue
         $stderr = [];
         $stdCollection = function ($type, $buffer) use (&$stdout, &$stderr): void {
             if (Process::ERR === $type) {
-                array_push($stderr, $buffer);
+                array_push($stderr, $this->censor($buffer));
             } else {
-                array_push($stdout, $buffer);
+                array_push($stdout, $this->censor($buffer));
             }
         };
 
@@ -54,12 +53,12 @@ class DeployJob implements ShouldQueue
             return;
         }
 
-        $gitConfig = 'git -c credential.helper=\'!f() { sleep 1; echo "username=${GIT_USER}"; echo "password=${GIT_PASS}"; }; f\'';
+        $gitCmd = $this->gitCommand();
 
         if ($this->checkIsEmpty($cwd)) {
-            $pull = Process::fromShellCommandline($gitConfig . ' clone "${:REPO}" .', $cwd);
+            $pull = Process::fromShellCommandline($gitCmd . ' clone "${:REPO}" .', $cwd);
         } else {
-            $pull = Process::fromShellCommandline($gitConfig . ' pull "${:REPO}" "${:REF}" -f', $cwd);
+            $pull = Process::fromShellCommandline($gitCmd . ' pull "${:REPO}" "${:REF}" -f', $cwd);
         }
 
         try {
@@ -85,10 +84,10 @@ class DeployJob implements ShouldQueue
 
             logger()->info($singleLine);
 
-            $userScript = Process::fromShellCommandline($singleLine, $cwd, $envs);
+            $userScript = Process::fromShellCommandline($singleLine, $cwd);
 
             try {
-                $userScript->run($stdCollection);
+                $userScript->run($stdCollection, $envs);
             } catch (\Throwable $th) {
                 $this->deployError($th, $stdout, $stderr);
                 return;
@@ -106,6 +105,30 @@ class DeployJob implements ShouldQueue
 
         $this->deployment->processed_at = now();
         $this->deployment->save();
+    }
+
+    private function censor(mixed $output): string
+    {
+        return str_replace([
+            env($this->gitPass())
+        ], '****************', $output);
+    }
+
+    private function gitPass(): string
+    {
+        $provider = $this->deployment->app->provider->construct();
+        $gitUrl = $provider->extractFromUrl($this->deployment->app->repository);
+
+        $orgKey = str($gitUrl->org)->lower()->snake()->upper();
+
+        $gitPassKey = 'GIT_PASS_' . $orgKey;
+
+        return isset($_ENV[$gitPassKey]) ? $gitPassKey : 'GIT_PASS';
+    }
+
+    private function gitCommand(): string
+    {
+        return 'git -c credential.helper=\'!f() { sleep 1; echo "username=${GIT_USER}"; echo "password=${' . $this->gitPass() . '}"; }; f\'';
     }
 
     private function checkIsEmpty($dir): bool
