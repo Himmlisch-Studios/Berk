@@ -4,6 +4,7 @@ namespace App\Git\Providers;
 
 use App\Git\GitProviderContract;
 use App\Git\GitUrlParts;
+use App\Git\GitUtils;
 use App\Git\Validators\GithubValidator;
 use App\Models\App;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ final class GithubProvider implements GitProviderContract
         $response = Http::asJson()
             ->accept('application/vnd.github+json')
             ->withHeader('X-GitHub-Api-Version', '2022-11-28')
-            ->withHeader('Authorization', 'Bearer ' . env('GIT_PASS_' . str($parts->org)->lower()->snake()->upper(), env('GIT_PASS')))
+            ->withHeader('Authorization', 'Bearer ' . env('GIT_PASS_' . GitUtils::formatEnvKey($parts->org), env('GIT_PASS')))
             ->get("https://api.github.com/repos/{$parts->org}/{$parts->repo}/commits/heads/{$app->branch}");
 
         $latestCommit = $response->json();

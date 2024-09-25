@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Git\GitUtils;
 use App\Models\App;
 use App\Models\Deployment;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -119,7 +120,7 @@ class DeployJob implements ShouldQueue
         $provider = $this->deployment->app->provider->construct();
         $gitUrl = $provider->extractFromUrl($this->deployment->app->repository);
 
-        $orgKey = str($gitUrl->org)->lower()->snake()->upper();
+        $orgKey = GitUtils::formatEnvKey($gitUrl->org);
 
         $gitPassKey = 'GIT_PASS_' . $orgKey;
 
