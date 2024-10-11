@@ -28,6 +28,7 @@ class DeployJob implements ShouldQueue
         $envs = [
             // System env
             'HOME' => env('HOME'),
+            'COMPOSER_HOME' => env('COMPOSER_HOME', DIRECTORY_SEPARATOR . exec('whoami') . DIRECTORY_SEPARATOR . '.composer'),
             // Git env
             'GIT_USER' => env('GIT_USER'),
             $gitPassKey => env($gitPassKey),
