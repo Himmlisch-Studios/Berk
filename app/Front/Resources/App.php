@@ -42,7 +42,6 @@ class App extends Resource
                 ->default(GitProvider::Github->value),
             Inputs\Text::make('Repository')
                 ->placeholder('https://github.com/organization/repository-name')
-                ->hideWhenUpdating()
                 ->rules(['required']),
             Inputs\Text::make('Branch')
                 ->placeholder('master')
